@@ -1,0 +1,370 @@
+---
+title: "Final project"
+author: "You Valérie"
+date: "April 4th, 2022"
+output: html_document
+---
+
+# INTRODUCTION
+
+This dataset has been downloaded from Kaggle:\
+[<https://www.kaggle.com/datasets/leonardopena/top50spotify2019>](https://www.kaggle.com/datasets/leonardopena/top50spotify2019){.uri}
+
+It contains the Top 50 most listened songs in the world by Spotify in 2019. This dataset has 13 variables about the songs.
+
+From the vintage gramaphones through mix tapes through radio, our listening medium has now reached online music-streaming platforms. Spotify, Apple music, Google play etc are some of the most popular of these.
+
+Spotify is the most popular subscription audio streaming service in the world, with 248 million users including 113 million subscribers in 79 markets. Today, Spotify is the company that generates the most revenue for the music industry.
+
+# Presentation and description of the problem
+
+Music has always been an indispensable aspect of our daily life. Over the past decades, our sources of listening to them have also evolved over time.
+
+It would be interesting to understand what are the important factors that make a song more successful than others. Through this analysis, we will try to identify the popular songs or artists and evaluate if there are some correlations between characteristics of the songs, the popularity and the genre.
+
+We also want to show the results of this analysis in an intuitive way by visualizing outcome using ggplot2 in R. This analysis will be conducted thanks to the contents that we have learnt from Programming for BA but also from the other courses we had before (Correlation Matrix, Boxplot, Scatterplox).
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE
+)
+
+library(tidyverse)
+library(dplyr)
+library(kableExtra)
+library(ggplot2)
+library(lubridate)
+```
+
+# I. Presentation of the data
+
+## 1.1. Importing the dataset (+description)
+
+We have information about artist name, track title and genre. The rest columns contain numerical values about:
+
+-   **BPM** - the tempo of the song,
+
+-   **Energy**- the energy of a song - the higher the value, the more energtic song is,
+
+-   **Danceability** - the higher the value, the easier it is to dance to this song,
+
+-   **Loudness** - the higher the value, the louder the song,
+
+-   **Liveness** - the higher the value, the more likely the song is a live recording,
+
+-   **Valence** - the higher the value, the more positive mood for the song,
+
+-   **Length** - the duration of the song,
+
+-   **Acousticness** - the higher the value the more acoustic the song is,
+
+-   **Speechiness** - the higher the value the more spoken word the song contains,
+
+-   **Popularity** - the higher the value the more popular the song is.
+
+```{r}
+library(readr)
+spotify_ds <- read_csv("FINAL PROJECT/top50.csv")
+
+knitr::kable((spotify_ds))%>%
+  kable_styling(font_size = 8, bootstrap_options = "striped", full_width = TRUE)
+```
+
+## 1.2. Exploratory data analysis
+
+-   Examination
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+
+head(spotify_ds)
+```
+
+The number of variables (columns) is 14 and there are 50 observations (rows).
+
+```{r echo=TRUE}
+ncol(spotify_ds)
+nrow(spotify_ds)
+```
+
+-   Checking for missing values
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+
+missingvalues <- colSums(is.na(spotify_ds))
+missingvalues
+```
+
+-   List of genres
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+
+table(spotify_ds$Genre)
+
+```
+
+-   List of artists
+
+```{r}
+
+table(spotify_ds$Artist.Name)
+```
+
+# II. Data cleaning
+
+## 2.1. Removing unnecessary column
+
+Here, I want to remove the first column as I find it unnecessary
+
+```{r}
+spotify_ds = subset(spotify_ds, select = -c(...1))
+
+knitr::kable(head(spotify_ds))%>%
+  kable_styling(font_size = 8, bootstrap_options = "striped", full_width = TRUE)
+```
+
+## 2.2. Renaming confusing sub-genres
+
+```{r echo=TRUE}
+spotify_ds$Genre <- gsub("dance pop", "pop", spotify_ds$Genre)
+spotify_ds$Genre <- gsub("canadian hip hop", "rap/hip hop", spotify_ds$Genre)
+spotify_ds$Genre <- gsub("panamanian pop", "pop", spotify_ds$Genre)
+spotify_ds$Genre <- gsub("dfw rap", "rap/hip hop", spotify_ds$Genre)
+spotify_ds$Genre <- gsub("country rap", "rap/hip hop", spotify_ds$Genre)
+spotify_ds$Genre <- gsub("trap music", "rap/hip hop", spotify_ds$Genre)
+spotify_ds$Genre <- gsub("boy band", "pop", spotify_ds$Genre)
+spotify_ds$Genre <- gsub("australian pop", "pop", spotify_ds$Genre)
+spotify_ds$Genre <- gsub("reggaeton flow", "reggaeton", spotify_ds$Genre)
+spotify_ds$Genre <- gsub("pophouse", "house", spotify_ds$Genre)
+spotify_ds$Genre <- gsub("canadian pop", "pop", spotify_ds$Genre)
+spotify_ds$Genre <- gsub("reggaeton", "reggaeton", spotify_ds$Genre)
+spotify_ds$Genre <- gsub("electropop", "pop", spotify_ds$Genre)
+spotify_ds$Genre <- gsub("electropop", "pop", spotify_ds$Genre)
+spotify_ds$Genre <- gsub("atl hip hop", "rap/hip hop", spotify_ds$Genre)
+spotify_ds$Genre <- gsub("escape room", "r&b", spotify_ds$Genre)
+spotify_ds$Genre <- gsub("r&b en espanol", "r&b", spotify_ds$Genre)
+spotify_ds$Genre <- gsub("big room", "house", spotify_ds$Genre)
+```
+
+-   **Cleaned dataframe**
+
+```{r}
+knitr::kable((spotify_ds))%>%
+  kable_styling(font_size = 8, bootstrap_options = "striped", full_width = TRUE)
+```
+
+# III. Visualization of the data
+
+## 3.1. The number of songs per artist
+
+According to the analysis, Ed Sheeran is the artist that has the highest amount of songs in 2019's Top 50.
+
+```{r echo=TRUE}
+spotify_ds %>%
+  select(Artist.Name) %>%
+  group_by(Artist.Name) %>%
+  summarise(n()) %>%
+  view()
+```
+
+![](images/Capture%20d%E2%80%99%C3%A9cran%202022-04-09%20%C3%A0%2013.03.34.png)
+
+![](images/Capture%20d%E2%80%99%C3%A9cran%202022-04-09%20%C3%A0%2013.03.45.png)
+
+## 3.2.Top 15 artists according to Popularity
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+
+spotify_pop <- spotify_ds %>%
+  arrange(desc(Popularity)) %>%
+  head(15)
+
+Artist_pop_plot= ggplot(spotify_pop) +
+  aes(x = Artist.Name, weight = Popularity) +
+  geom_bar(fill = "#90C290") +
+  labs(title = "Top 15 Artists", subtitle = "With highest popularity") +
+  coord_flip() +
+  theme_light() +
+  theme(
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(face = "bold"),
+    axis.title.y = element_text(size = 12L,
+    face = "bold"),
+    axis.title.x = element_text(size = 12L,
+    face = "bold")
+  )
+Artist_pop_plot
+
+```
+
+## 3.3. Top Genre according to Popularity
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+
+top_genre = spotify_ds %>%
+ filter(!(Artist.Name %in% "ROSAL\xcdA")) %>%
+ ggplot() +
+  aes(x = Genre, weight = Popularity) +
+  geom_bar(fill = "#4682B4") +
+  labs(
+    x = "Genre",
+    y = "Popularity",
+    title = "Top Genre",
+    subtitle = "according to Popularity"
+  ) +
+  coord_flip() +
+  theme_minimal() +
+  theme(
+    axis.title.y = element_text(face = "bold"),
+    axis.title.x = element_text(face = "bold")
+  )
+
+top_genre
+```
+
+## 3.4. Correlation matrix to define the genre
+
+-   **Number, correlation matrix**
+
+In this plot, correlation coefficients are colored according to their value. Value of correlation coefficients can vary between -1 (strong negative correlation) and 1 (strong positive correlation). 0 indicates that there is no correlation between the variables. Another method of visualization is the association of the blue color for the coefficients close to 1 and red for the coefficients which tend towards -1.
+
+Through this correlation matrix, we can identify the variables (characteristics) that have an influence on the genre.
+
+For example, we can stand that energetic songs are correlated to the loudness of it. The most positive correlations are between Energy and Loudness (0,67), followed by BPM and Speechiness (0,56). The strongest negative correlations are between Energy and Accousticness (-0,34), followed by Loudness and Speechiness (-0,27).
+
+```{r}
+
+library(corrplot)
+spotify_corr <- select(spotify_ds, -c(Track.Name,  Artist.Name ,Genre, Popularity))
+mtCor <- cor(spotify_corr)
+corrplot(mtCor, method = "number", type = "upper", tl.srt = 45)
+```
+
+-   **Correlation matrix including Popularity**
+
+This is another alternative of correlation matrix. In this case, I will not remove Popularity in order to evaluate which variable influence on the Popularity of a song.
+
+According to the correlation matrix, we can stand that, thanks to the blue color and direction of the ellipses, the BPM, Speechiness and Liveness are positively correlated to the popularity.\
+In contrast, Valence is negatively correlated to the popularity as the ellipse is likely orange.
+
+```{r}
+library(corrplot)
+spotify_corr <- select(spotify_ds, -c(Track.Name,  Artist.Name ,Genre))
+mtCor <- cor(spotify_corr)
+corrplot(mtCor, method = "ellipse", type = "lower", tl.srt = 45)
+```
+
+## 3.5. Scatterplot
+
+From the above correlation matrix, we can see that there is a strong positive correlation between Energy and Loudness. It means that songs the loud of a song determine if it is energetic or not. We can also provide a scatter plot to visualize the correlation between the characteristics.
+
+The scatterplot confirms that there is a positive correlation Energy and Loudness.
+
+```{r}
+
+spotify_sp_eL = 
+  spotify_ds %>%
+ filter(!(Artist.Name %in% "ROSAL\xcdA")) %>%
+ ggplot() +
+  aes(x = Loudness..dB.., y = Energy) +
+  geom_point(shape = "circle", size = 1.5, colour = "#EF562D") +
+  geom_smooth(span = 0.48) +
+  labs(x = "Loudness") +
+  theme_linedraw()
+
+spotify_sp_eL
+
+```
+
+We can do the same to confirm our initial observation regarding the correlation between Energy and Acousticness and it is negative.
+
+```{r}
+
+spotify_sp_eA = 
+  spotify_ds %>%
+ filter(!(Artist.Name %in% "ROSAL\xcdA")) %>%
+ ggplot() +
+  aes(x = Energy, y = Acousticness..) +
+  geom_point(shape = "circle", size = 1.5, colour = "#EF562D") +
+  geom_smooth(span = 0.75) +
+  theme_minimal()
+
+spotify_sp_eA
+```
+
+## 3.6. Boxplot
+
+Through the boxplot, we can evaluate that the rap/hiphop and reggaeton followed by latino songs are the top 3 genres with the highest average popularity on this dataset.\
+Regarding the size of the boxplot, we observe that among the Top 50, the genre that appears the most is "pop".
+
+```{r}
+mygraph_bp = spotify_ds %>%
+ filter(!(Artist.Name %in% "ROSAL\xcdA")) %>%
+ ggplot() +
+  aes(x = Genre, y = Popularity, fill = Genre) +
+  geom_boxplot() +
+  scale_fill_hue(direction = 1) +
+   labs(
+    x = "Genre",
+    y = "Popularity",
+    title = "Popularity based on genre") +
+  theme_minimal()
+  
+mygraph_bp
+```
+
+-   Average energy per genre
+
+```{r}
+
+mygraph_AEG = 
+  spotify_ds %>%
+ filter(!(Artist.Name %in% "ROSAL\xcdA")) %>%
+ ggplot() +
+  aes(x = Energy, y = Genre, fill = Genre) +
+  geom_boxplot() +
+  scale_fill_hue(direction = 1) +
+  labs(title = "Average energy by genre") +
+  theme_minimal()
+mygraph_AEG
+```
+
+-   Average valence by genre
+
+```{r}
+
+mygraph_AVG =
+  spotify_ds %>%
+ filter(!(Artist.Name %in% "ROSAL\xcdA")) %>%
+ ggplot() +
+  aes(x = Danceability, y = Genre, fill = Genre) +
+  geom_boxplot() +
+  scale_fill_hue(direction = 1) +
+  labs(title = "Danceability by genre") +
+  theme_minimal()
+mygraph_AVG
+
+```
+
+# Interpretation and conclusion
+
+This analysis has been conducted to evaluate various observations regarding the Spotify Top 50 dataset. From these graphs, we can conclude that:
+
+-   Pop songs are the ones that appear the most in the ranking, followed by reggaeton and rap/hiphop.
+
+-   Rap/hiphop has the highest average popularity among the genres while pop has least average popularity.
+
+-   Even if Ed Sheeran has the four songs that appear in the ranking, Post Malone with only two released songs is the one having the highest popularity score (bar charts).
+
+-   The correlation matrix also show that energy and loudness are positively correlated while energy and accousticness do not fit each others.
+
+-   It is also interesting to observe the danceability by genre.
+
+However, the observations may not be really relevant and representative because it only contains 50 observations. The correlations may change with more songs.
+
+# References
+
+[<https://www.kaggle.com/datasets/leonardopena/top50spotify2019>](https://www.kaggle.com/datasets/leonardopena/top50spotify2019){.uri}
+
+<https://towardsdatascience.com/k-means-clustering-and-pca-to-categorize-music-by-similar-audio-features-df09c93e8b64>
